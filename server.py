@@ -15,21 +15,39 @@ app = Flask(__name__, static_folder="web", static_url_path="")
 
 # ── Mesh cache ────────────────────────────────────────────────────────────────
 _cache: dict = {}
+_cache_lock = threading.Lock()
 
 def _get(path: str):
-    if path not in _cache:
-        _cache[path] = load_mesh(path, display=True)
-    return _cache[path].copy()   # always return a copy so morph doesn't mutate
+    with _cache_lock:
+        if path not in _cache:
+            _cache[path] = load_mesh(path, display=True)
+        return _cache[path]   # return reference — callers must .copy() if mutating
+
+# ── Prepare cache (A_idx, B_idx) → binary payload ────────────────────────────
+_prepare_cache: dict = {}
+_prepare_lock  = threading.Lock()
 
 # ── Binary mesh format ────────────────────────────────────────────────────────
-# header: [n_verts uint32, n_faces uint32]
-# data:   [verts float32 * n*3] + [faces uint32 * n*3]
-
 def _to_binary(mesh):
     verts = mesh.vertices.astype(np.float32)
     faces = mesh.faces.astype(np.uint32)
     header = struct.pack('<II', len(verts), len(faces))
     return header + verts.tobytes() + faces.tobytes()
+
+# ── Pre-warm: load all meshes in background so first request is fast ──────────
+def _prewarm():
+    mice = get_all_mice()
+    print(f"[prewarm] Loading {len(mice)} meshes…", flush=True)
+    for i, (name, path) in enumerate(mice):
+        try:
+            _get(path)
+            if i % 10 == 0:
+                print(f"[prewarm] {i}/{len(mice)} loaded", flush=True)
+        except Exception as e:
+            print(f"[prewarm] Failed {name}: {e}", flush=True)
+    print("[prewarm] All meshes cached.", flush=True)
+
+threading.Thread(target=_prewarm, daemon=True).start()
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
@@ -46,7 +64,8 @@ def api_mice():
 def api_prepare():
     """
     Pre-align A and B meshes for client-side smooth morphing.
-    Returns binary: [n_verts u32][n_faces u32][a_verts f32*n*3][b_verts f32*n*3][faces u32*n*3]
+    Result is cached so repeated calls for the same pair are instant.
+    Binary: [n_verts u32][n_faces u32][a_verts f32*n*3][b_verts f32*n*3][faces u32*n*3]
     """
     from scipy.spatial import cKDTree
     from src.core.morph_engine import _laplacian_smooth_verts
@@ -56,22 +75,34 @@ def api_prepare():
     a_idx = int(data.get("a", 0))
     b_idx = int(data.get("b", 1))
 
+    cache_key = (a_idx, b_idx)
+    with _prepare_lock:
+        if cache_key in _prepare_cache:
+            return Response(_prepare_cache[cache_key],
+                            mimetype="application/octet-stream")
+
+    # Compute (outside the lock so other requests aren't blocked)
     ma = _get(mice[a_idx][1])
     mb = _get(mice[b_idx][1])
 
-    # Resample A vertices onto B topology
     tree = cKDTree(ma.vertices)
-    _, idx = tree.query(mb.vertices, workers=-1)
+    _, idx = tree.query(mb.vertices, workers=1)   # workers=1 on single-core free tier
     a_resampled = ma.vertices[idx].astype(np.float32)
-    a_smooth = _laplacian_smooth_verts(a_resampled, mb.faces, iterations=2).astype(np.float32)
+    a_smooth = _laplacian_smooth_verts(
+        a_resampled, mb.faces, iterations=1          # 1 pass is fast & good enough
+    ).astype(np.float32)
 
     nv = len(mb.vertices)
     nf = len(mb.faces)
-    header = struct.pack('<II', nv, nf)
+    header  = struct.pack('<II', nv, nf)
     payload = (header
                + a_smooth.tobytes()
                + mb.vertices.astype(np.float32).tobytes()
                + mb.faces.astype(np.uint32).tobytes())
+
+    with _prepare_lock:
+        _prepare_cache[cache_key] = payload
+
     return Response(payload, mimetype="application/octet-stream")
 
 
@@ -83,10 +114,10 @@ def api_mesh():
     a_idx  = int(data.get("a", 0))
     b_idx  = int(data.get("b", 1))
     t      = float(data.get("t", 0.0))
-    deform = data.get("deform", {})   # {"front,width": 1.1, ...}
+    deform = data.get("deform", {})
 
-    mesh_a = _get(mice[a_idx][1])
-    mesh_b = _get(mice[b_idx][1])
+    mesh_a = _get(mice[a_idx][1]).copy()
+    mesh_b = _get(mice[b_idx][1]).copy()
 
     result = morph_blend(mesh_a, mesh_b, t)
 
@@ -106,7 +137,6 @@ def api_export():
     t      = float(data.get("t", 0.0))
     deform = data.get("deform", {})
 
-    # Full-res meshes for export
     mesh_a = load_mesh(mice[a_idx][1], display=False)
     mesh_b = load_mesh(mice[b_idx][1], display=False)
 
