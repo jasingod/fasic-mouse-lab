@@ -119,7 +119,7 @@ function fitCamera() {
   const s = geo.boundingSphere;
   if (!s || s.radius === 0) return;
   controls.target.set(s.center.x, s.center.y, s.center.z);
-  camera.position.set(s.center.x, s.center.y, s.center.z + s.radius * 3.0);
+  camera.position.set(s.center.x, s.center.y, s.center.z - s.radius * 3.0);
   camera.up.set(0, -1, 0);
   controls.update();
   grid.position.set(s.center.x, s.center.y, s.center.z - s.radius * 1.05);
