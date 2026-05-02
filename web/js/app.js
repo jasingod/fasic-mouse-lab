@@ -71,6 +71,7 @@ const mat = new THREE.MeshStandardMaterial({
   color: 0xc8d2e8,
   roughness: 0.40,
   metalness: 0.05,
+  side: THREE.DoubleSide,
 });
 const meshObj = new THREE.Mesh(geo, mat);
 scene.add(meshObj);

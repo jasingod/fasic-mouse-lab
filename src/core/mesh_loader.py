@@ -34,7 +34,7 @@ def get_all_mice():
 
 
 def _align_axes(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
-    """Rotate mesh so:  X=width  Y=length(front→back)  Z=height(up)."""
+    """Rotate mesh so:  X=width  Y=length(front→back)  Z=height(up, scroll wheel toward +Z)."""
     extents = mesh.bounding_box.extents          # [ex, ey, ez]
     order   = np.argsort(extents)                # smallest → largest
     # smallest extent → Z (height), largest → Y (length), mid → X (width)
@@ -43,6 +43,13 @@ def _align_axes(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
     for new_ax, src_ax in enumerate(desired):
         rot[new_ax, src_ax] = 1.0
     mesh.vertices = mesh.vertices @ rot.T
+
+    # Flip Z so the TOP surface (scroll wheel) faces +Z.
+    # STL files are typically scanned upside-down → bottom faces +Z by default.
+    mesh.vertices[:, 2] *= -1
+    # Reverse face winding to keep outward normals correct after Z flip.
+    mesh.faces = mesh.faces[:, [0, 2, 1]]
+
     return mesh
 
 
