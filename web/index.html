@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FASIC — Mouse Shape Lab</title>
+<link rel="stylesheet" href="/css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="brand">
+    <span class="brand-name">FASIC</span>
+    <span class="brand-sub">MOUSE SHAPE LAB</span>
+  </div>
+  <div class="header-right">
+    <span id="statusText" class="status">Initializing…</span>
+    <button id="exportBtn" class="btn-export" disabled>Export STL</button>
+  </div>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<main>
+
+  <!-- Left: Morph panel -->
+  <aside class="panel panel-left">
+    <div class="panel-title">MORPH BLEND</div>
+    <div class="section-label">● Base Mouse  A</div>
+    <select id="selectA" class="mouse-select"></select>
+
+    <div class="section-label" style="margin-top:14px">● Target Mouse  B</div>
+    <select id="selectB" class="mouse-select"></select>
+
+    <div class="divider"></div>
+
+    <div class="section-label">Blend  A → B</div>
+    <div class="morph-row">
+      <span class="tag-a">A</span>
+      <input type="range" id="morphSlider" class="slider morph-slider"
+             min="0" max="100" value="0">
+      <span class="tag-b">B</span>
+    </div>
+    <div id="morphPct" class="morph-pct">0 %</div>
+  </aside>
+
+  <!-- Center: 3D Viewport -->
+  <div class="viewport" id="viewport">
+    <canvas id="canvas"></canvas>
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Right: Parts panel -->
+  <aside class="panel panel-right" id="partsPanel">
+    <div class="panel-title">PARTS CUSTOMIZE</div>
+    <button id="resetAllBtn" class="btn-reset-all">Reset All</button>
+    <div id="partSections"></div>
+  </aside>
+
+</main>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
