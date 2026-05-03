@@ -31,28 +31,7 @@
 <!-- ── Main ────────────────────────────────────────────────────────────── -->
 <main>
 
-  <!-- Left: Morph panel -->
-  <aside class="panel panel-left">
-    <div class="panel-title">MORPH BLEND</div>
-    <div class="section-label">● Base Mouse  A</div>
-    <select id="selectA" class="mouse-select"></select>
-
-    <div class="section-label" style="margin-top:14px">● Target Mouse  B</div>
-    <select id="selectB" class="mouse-select"></select>
-
-    <div class="divider"></div>
-
-    <div class="section-label">Blend  A → B</div>
-    <div class="morph-row">
-      <span class="tag-a">A</span>
-      <input type="range" id="morphSlider" class="slider morph-slider"
-             min="0" max="100" value="0">
-      <span class="tag-b">B</span>
-    </div>
-    <div id="morphPct" class="morph-pct">0 %</div>
-  </aside>
-
-  <!-- Center: 3D Viewport -->
+  <!-- 3D Viewport -->
   <div class="viewport" id="viewport">
     <canvas id="canvas"></canvas>
     <div class="loading-overlay" id="loadingOverlay">
@@ -60,12 +39,38 @@
     </div>
   </div>
 
-  <!-- Right: Parts panel -->
-  <aside class="panel panel-right" id="partsPanel">
-    <div class="panel-title">PARTS CUSTOMIZE</div>
-    <button id="resetAllBtn" class="btn-reset-all">Reset All</button>
-    <div id="partSections"></div>
-  </aside>
+  <!-- Controls pane: wraps both panels (enables mobile scroll) -->
+  <div class="controls-pane">
+
+    <!-- Morph panel -->
+    <aside class="panel panel-left">
+      <div class="panel-title">MORPH BLEND</div>
+      <div class="section-label">● Base Mouse  A</div>
+      <select id="selectA" class="mouse-select"></select>
+
+      <div class="section-label" style="margin-top:14px">● Target Mouse  B</div>
+      <select id="selectB" class="mouse-select"></select>
+
+      <div class="divider"></div>
+
+      <div class="section-label">Blend  A → B</div>
+      <div class="morph-row">
+        <span class="tag-a">A</span>
+        <input type="range" id="morphSlider" class="slider morph-slider"
+               min="0" max="100" value="0">
+        <span class="tag-b">B</span>
+      </div>
+      <div id="morphPct" class="morph-pct">0 %</div>
+    </aside>
+
+    <!-- Parts panel -->
+    <aside class="panel panel-right" id="partsPanel">
+      <div class="panel-title">PARTS CUSTOMIZE</div>
+      <button id="resetAllBtn" class="btn-reset-all">Reset All</button>
+      <div id="partSections"></div>
+    </aside>
+
+  </div><!-- /controls-pane -->
 
 </main>
 

@@ -472,11 +472,13 @@ function buildPartsPanel() {
       const rst=document.createElement('button'); rst.className='btn-reset'; rst.textContent='↺';
       slider.addEventListener('input', () => {
         const v=toVal(+slider.value); state.deform[key]=v; valLbl.textContent=fmt(v);
-        updateSliderFill(slider); scheduleDeform();
+        updateSliderFill(slider);
+        if (baseMorphVerts) animateTo(applyAllDeforms(baseMorphVerts));
       });
       rst.addEventListener('click', () => {
         slider.value=toSlider(def); state.deform[key]=def; valLbl.textContent=fmt(def);
-        updateSliderFill(slider); scheduleDeform();
+        updateSliderFill(slider);
+        if (baseMorphVerts) animateTo(applyAllDeforms(baseMorphVerts));
       });
       row.append(lbl,slider,valLbl,rst); block.appendChild(row);
     }
@@ -493,7 +495,7 @@ document.getElementById('resetAllBtn').addEventListener('click', () => {
     updateSliderFill(sl);
     sl.nextElementSibling.textContent=(dim==='width'||dim==='height'||dim==='length')?def.toFixed(2)+'×':(def>=0?'+':'')+def.toFixed(2);
   });
-  scheduleDeform(0);
+  if (baseMorphVerts) animateTo(applyAllDeforms(baseMorphVerts));
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────

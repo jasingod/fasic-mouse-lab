@@ -67,12 +67,22 @@ header {
   text-align: right;
 }
 
-/* ── Layout ────────────────────────────────────────────────────────────── */
+/* ── Desktop Layout ────────────────────────────────────────────────────── */
 main {
   display: flex;
   height: calc(100vh - 52px);
   overflow: hidden;
 }
+
+/* controls-pane is a transparent wrapper on desktop */
+.controls-pane {
+  display: contents;
+}
+
+/* Order: left panel | viewport | right panel */
+.panel-left  { order: 1; }
+.viewport    { order: 2; }
+.panel-right { order: 3; }
 
 /* ── Panels ────────────────────────────────────────────────────────────── */
 .panel {
@@ -247,6 +257,7 @@ main {
   display: block;
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 
 .loading-overlay {
@@ -305,3 +316,87 @@ main {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #2a2a55; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Mobile ────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  html, body { overflow: hidden; }
+
+  header {
+    padding: 0 12px;
+    height: 48px;
+  }
+  .brand-sub { display: none; }
+  .brand-name { font-size: 18px; letter-spacing: 3px; }
+  .status { min-width: 0; font-size: 10px; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btn-export { padding: 6px 12px; font-size: 12px; }
+
+  main {
+    flex-direction: column;
+    height: calc(100vh - 48px);
+    height: calc(100dvh - 48px);
+    overflow: hidden;
+  }
+
+  /* Viewport: fixed top portion */
+  .viewport {
+    order: 1;
+    flex: none;
+    width: 100%;
+    height: 44vh;
+    min-height: 180px;
+  }
+
+  /* Controls pane: becomes a real flex column (overrides display:contents) */
+  .controls-pane {
+    display: flex;
+    flex-direction: column;
+    order: 2;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
+  /* Both panels fill full width, stacked vertically */
+  .panel-left {
+    width: 100%;
+    order: 0;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
+  .panel-right {
+    width: 100%;
+    order: 0;
+    flex-shrink: 0;
+    border-left: none;
+    overflow-y: visible;
+  }
+
+  /* Parts inner scroll not needed — parent scrolls */
+  #partSections {
+    overflow-y: visible;
+    flex: none;
+  }
+
+  /* Larger touch targets for sliders */
+  .slider {
+    height: 6px;
+  }
+  .slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .dim-row {
+    grid-template-columns: 48px 1fr 40px 28px;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .btn-reset {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+}
